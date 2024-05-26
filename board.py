@@ -11,7 +11,8 @@ class Board:
             'Submarine': ('S', 3),
             'Destroyer': ('D', 2)
         }
-        self.ship_symbols = {v[0]: k for k, v in self.ships.items()}
+        self.ship_symbols = {v[0]: (k, v[1]) for k, v in self.ships.items()}
+        self.ship_health = {symbol: size for symbol, (_, size) in self.ship_symbols.items()}
 
     def print_board(self, hide_ships=False):
         for row in self.grid:
@@ -48,7 +49,13 @@ class Board:
         if self.grid[row][col] in self.ship_symbols:
             ship_symbol = self.grid[row][col]
             self.grid[row][col] = 'X'  # Hit
-            return True, self.ship_symbols[ship_symbol]
+            self.ship_health[ship_symbol] -= 1
+            if self.ship_health[ship_symbol] == 0:
+                return True, self.ship_symbols[ship_symbol][0], True
+            return True, self.ship_symbols[ship_symbol][0], False
         else:
             self.grid[row][col] = 'O'  # Miss
-            return False, None
+            return False, None, False
+
+    def all_ships_sunk(self):
+        return all(health == 0 for health in self.ship_health.values())
