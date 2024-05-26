@@ -1,6 +1,7 @@
 from board import Board
 import random
 
+
 def get_board_size():
     while True:
         try:
@@ -12,6 +13,7 @@ def get_board_size():
         except ValueError:
             print("Invalid input. Please enter a number between 5 and 15.")
 
+
 def get_shot():
     while True:
         try:
@@ -21,6 +23,30 @@ def get_shot():
         except ValueError:
             print("Invalid input. Please enter numbers for row and column.")
 
+
+def coin_toss():
+    while True:
+        choice = input("Choose heads or tails (H/T): ").upper()
+        if choice in ['H', 'T']:
+            break
+        else:
+            print("Invalid choice. Please choose H for heads or T for tails.")
+
+    result = random.choice(['H', 'T'])
+    print(f"Coin toss result: {'heads' if result == 'H' else 'tails'}")
+
+    return choice == result
+
+
+def choose_placement_method():
+    while True:
+        method = input("Do you want to place ships manually or automatically? (M/A): ").upper()
+        if method in ['M', 'A']:
+            return method
+        else:
+            print("Invalid choice. Please choose M for manual or A for automatic.")
+
+
 def main():
     print("Welcome to Battleship!")
     size = get_board_size()
@@ -28,8 +54,14 @@ def main():
     player_board = Board(size)
     machine_board = Board(size)
 
-    print("\nPlacing player's ships...")
-    player_board.place_all_ships()
+    placement_method = choose_placement_method()
+    if placement_method == 'M':
+        print("\nPlacing player's ships manually...")
+        player_board.place_all_ships_manual()
+    else:
+        print("\nPlacing player's ships automatically...")
+        player_board.place_all_ships()
+
     print("Player's board:")
     player_board.print_board()
 
@@ -38,31 +70,37 @@ def main():
     print("Machine's board (hidden):")
     machine_board.print_board(hide_ships=True)
 
-    player_turn = True
+    print("\nLet's do a coin toss to see who goes first.")
+    player_turn = coin_toss()
+    if player_turn:
+        print("You won the coin toss! You will go first.")
+    else:
+        print("You lost the coin toss! The machine will go first.")
+
     turns = 0
 
     while True:
         if player_turn:
             print("\nPlayer's turn:")
             row, col = get_shot()
-            hit, ship_type, destroyed = machine_board.receive_missile(row, col)
+            hit, ship_name, destroyed = machine_board.receive_missile(row, col)
             if hit:
                 if destroyed:
-                    print(f"Hit! You destroyed the {ship_type}!")
+                    print(f"Hit! You destroyed the {ship_name}!")
                 else:
-                    print(f"Hit! You hit the {ship_type}.")
+                    print(f"Hit! You hit the {ship_name}.")
             else:
                 print("Miss!")
             machine_board.print_board(hide_ships=True)
         else:
             print("\nMachine's turn:")
-            row, col = random.randint(0, size-1), random.randint(0, size-1)
-            hit, ship_type, destroyed = player_board.receive_missile(row, col)
+            row, col = random.randint(0, size - 1), random.randint(0, size - 1)
+            hit, ship_name, destroyed = player_board.receive_missile(row, col)
             if hit:
                 if destroyed:
-                    print(f"Machine hit and destroyed your {ship_type}!")
+                    print(f"Machine hit and destroyed your {ship_name}!")
                 else:
-                    print(f"Machine hit your {ship_type}!")
+                    print(f"Machine hit your {ship_name}!")
             else:
                 print("Machine missed!")
             player_board.print_board()
@@ -79,6 +117,7 @@ def main():
         player_turn = not player_turn
         if not player_turn:
             turns += 1  # Increment turns after each complete cycle
+
 
 if __name__ == "__main__":
     main()
